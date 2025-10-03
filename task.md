@@ -1,6 +1,4 @@
-# Technical Assignment: "Mini Wallet" Application (High-Performance
-
-# Version)
+# Technical Assignment: "Mini Wallet" Application (High-Performance Version)
 
 **Introduction & Goal**
 
