@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace Domain\Identity\Models;
 
 use Carbon\CarbonInterface;
 use Database\Factories\UserFactory;
