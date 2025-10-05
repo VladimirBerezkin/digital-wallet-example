@@ -16,13 +16,18 @@ export function useAuth() {
     // Initialize user from localStorage on composable creation
     const initializeUser = () => {
         const storedUser = localStorage.getItem('user');
-        if (storedUser) {
+        const storedToken = localStorage.getItem('token');
+        
+        if (storedUser && storedToken) {
             try {
                 const parsedUser = JSON.parse(storedUser);
                 user.value = parsedUser;
+                
+                // Set the token in axios headers for future requests
+                axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
             } catch (e) {
-                console.warn('Failed to parse stored user data:', e);
                 localStorage.removeItem('user');
+                localStorage.removeItem('token');
                 user.value = null;
             }
         } else {
@@ -42,8 +47,13 @@ export function useAuth() {
                 password,
             });
             user.value = data.user;
-            // Persist user data to localStorage
+            // Persist user data and token to localStorage
             localStorage.setItem('user', JSON.stringify(data.user));
+            localStorage.setItem('token', data.token);
+            
+            // Set the token in axios headers for future requests
+            axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
+            
             return { success: true };
         } catch (err) {
             error.value = err.response?.data?.message || "Login failed";
@@ -57,13 +67,20 @@ export function useAuth() {
         try {
             await axios.post("/api/auth/logout");
             user.value = null;
-            // Clear user data from localStorage
+            // Clear user data and token from localStorage
             localStorage.removeItem('user');
+            localStorage.removeItem('token');
+            
+            // Remove token from axios headers
+            delete axios.defaults.headers.common['Authorization'];
+            
             return { success: true };
         } catch (err) {
             // Even if logout fails on server, clear local state
             user.value = null;
             localStorage.removeItem('user');
+            localStorage.removeItem('token');
+            delete axios.defaults.headers.common['Authorization'];
             return { success: false };
         }
     };
@@ -80,6 +97,8 @@ export function useAuth() {
             if (err.response?.status === 401) {
                 user.value = null;
                 localStorage.removeItem('user');
+                localStorage.removeItem('token');
+                delete axios.defaults.headers.common['Authorization'];
             }
             return { success: false };
         }

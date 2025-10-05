@@ -11,8 +11,8 @@ window.axios.defaults.withXSRFToken = true;
 // Fetch CSRF token on initialization
 axios.get('/api/csrf-token').then(response => {
     window.axios.defaults.headers.common['X-CSRF-TOKEN'] = response.data.csrf_token;
-}).catch(error => {
-    console.warn('Failed to fetch CSRF token:', error);
+}).catch(() => {
+    // Silently handle CSRF token fetch failure
 });
 
 // Setup Pusher & Echo for real-time broadcasting

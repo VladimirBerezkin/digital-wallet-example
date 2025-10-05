@@ -46,7 +46,7 @@ export function useWallet() {
         if (window.Echo) {
             window.Echo.channel(`user.${userId}`).listen(
                 "TransferCompleted",
-                () => {
+                (data) => {
                     fetchTransactions();
                 },
             );
