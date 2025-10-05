@@ -24,13 +24,13 @@ describe('User Model (Identity Domain)', function (): void {
         expect($user->balance)->toBe('1000.5000');
     });
 
-    it('casts balance as string', function (): void {
+    it('casts balance as decimal with 4 places', function (): void {
         $user = User::factory()->create([
             'balance' => '100.50',
         ]);
 
         expect($user->balance)->toBeString()
-            ->and($user->balance)->toBe('100.50');
+            ->and($user->balance)->toBe('100.5000');
     });
 
     it('has fillable attributes', function (): void {
