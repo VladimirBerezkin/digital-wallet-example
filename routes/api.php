@@ -3,7 +3,14 @@
 declare(strict_types=1);
 
 use App\Finance\Http\Controllers\TransactionController;
+use App\Identity\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
+
+Route::prefix('auth')->group(function (): void {
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth');
+    Route::get('/user', [AuthController::class, 'user'])->middleware('auth');
+});
 
 Route::middleware('auth')->group(function (): void {
     // Finance domain routes
