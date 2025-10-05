@@ -1,8 +1,25 @@
-import { createApp } from 'vue'
-import Counter from "./components/Counter.vue";
+import "./bootstrap";
+import { createApp } from "vue";
+import PrimeVue from "primevue/config";
+import Aura from "@primevue/themes/aura";
+import ToastService from "primevue/toastservice";
+import App from "./components/App.vue";
 
-const app = createApp()
+const app = createApp(App);
 
-app.component('counter', Counter)
+app.use(PrimeVue, {
+    theme: {
+        preset: Aura,
+        options: {
+            darkModeSelector: ".dark-mode",
+            cssLayer: {
+                name: "primevue",
+                order: "tailwind-base, primevue, tailwind-utilities",
+            },
+        },
+    },
+});
 
-app.mount('#app')
+app.use(ToastService);
+
+app.mount("#app");
