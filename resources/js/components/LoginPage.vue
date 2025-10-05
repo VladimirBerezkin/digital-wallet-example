@@ -36,9 +36,11 @@ const handleLogin = async () => {
     }
 };
 
-const quickLogin = (userEmail) => {
+const quickLogin = async (userEmail) => {
     email.value = userEmail;
     password.value = "password";
+    // Automatically perform the login
+    await handleLogin();
 };
 </script>
 

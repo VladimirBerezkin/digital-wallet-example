@@ -8,6 +8,13 @@ window.axios.defaults.headers.common["X-Requested-With"] = "XMLHttpRequest";
 window.axios.defaults.withCredentials = true;
 window.axios.defaults.withXSRFToken = true;
 
+// Fetch CSRF token on initialization
+axios.get('/api/csrf-token').then(response => {
+    window.axios.defaults.headers.common['X-CSRF-TOKEN'] = response.data.csrf_token;
+}).catch(error => {
+    console.warn('Failed to fetch CSRF token:', error);
+});
+
 // Setup Pusher & Echo for real-time broadcasting
 window.Pusher = Pusher;
 

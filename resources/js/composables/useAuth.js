@@ -1,10 +1,37 @@
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import axios from "axios";
 
+// Create singleton instance
+let authInstance = null;
+
 export function useAuth() {
+    if (authInstance) {
+        return authInstance;
+    }
+
     const user = ref(null);
     const loading = ref(false);
     const error = ref(null);
+
+    // Initialize user from localStorage on composable creation
+    const initializeUser = () => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            try {
+                const parsedUser = JSON.parse(storedUser);
+                user.value = parsedUser;
+            } catch (e) {
+                console.warn('Failed to parse stored user data:', e);
+                localStorage.removeItem('user');
+                user.value = null;
+            }
+        } else {
+            user.value = null;
+        }
+    };
+
+    // Initialize user state
+    initializeUser();
 
     const login = async (email, password) => {
         loading.value = true;
@@ -15,6 +42,8 @@ export function useAuth() {
                 password,
             });
             user.value = data.user;
+            // Persist user data to localStorage
+            localStorage.setItem('user', JSON.stringify(data.user));
             return { success: true };
         } catch (err) {
             error.value = err.response?.data?.message || "Login failed";
@@ -28,9 +57,13 @@ export function useAuth() {
         try {
             await axios.post("/api/auth/logout");
             user.value = null;
+            // Clear user data from localStorage
+            localStorage.removeItem('user');
             return { success: true };
         } catch (err) {
-            console.error("Logout failed:", err);
+            // Even if logout fails on server, clear local state
+            user.value = null;
+            localStorage.removeItem('user');
             return { success: false };
         }
     };
@@ -39,12 +72,23 @@ export function useAuth() {
         try {
             const { data } = await axios.get("/api/auth/user");
             user.value = data;
+            // Update localStorage with fresh user data
+            localStorage.setItem('user', JSON.stringify(data));
             return { success: true };
         } catch (err) {
-            user.value = null;
+            // Only clear user state if it's a 401 (unauthorized) error
+            if (err.response?.status === 401) {
+                user.value = null;
+                localStorage.removeItem('user');
+            }
             return { success: false };
         }
     };
 
-    return { user, loading, error, login, logout, fetchUser };
+    const isAuthenticated = () => {
+        return user.value !== null && user.value !== undefined;
+    };
+
+    authInstance = { user, loading, error, login, logout, fetchUser, isAuthenticated };
+    return authInstance;
 }

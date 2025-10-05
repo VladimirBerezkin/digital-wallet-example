@@ -6,6 +6,11 @@ use App\Finance\Http\Controllers\TransactionController;
 use App\Identity\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 
+// CSRF token endpoint for frontend
+Route::get('/csrf-token', function () {
+    return response()->json(['csrf_token' => csrf_token()]);
+});
+
 Route::prefix('auth')->group(function (): void {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth');
