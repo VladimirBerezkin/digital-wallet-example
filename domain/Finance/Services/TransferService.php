@@ -6,6 +6,7 @@ namespace Domain\Finance\Services;
 
 use Domain\Finance\Enums\LedgerType;
 use Domain\Finance\Enums\TransactionStatus;
+use Domain\Finance\Events\TransferCompleted;
 use Domain\Finance\Exceptions\InsufficientBalanceException;
 use Domain\Finance\Exceptions\InvalidTransferException;
 use Domain\Finance\Models\BalanceLedger;
@@ -171,6 +172,11 @@ final readonly class TransferService
                 'commission_collected' => $commission->getAmount(),
                 'completed_at' => now()->toIso8601String(),
             ]);
+
+            // Dispatch event after transaction commit for real-time broadcasting
+            DB::afterCommit(function () use ($transaction): void {
+                event(new TransferCompleted($transaction));
+            });
 
             return $transaction;
         });
