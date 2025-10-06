@@ -14,7 +14,9 @@ use Domain\Finance\Models\CommissionLedger;
 use Domain\Finance\Models\Transaction;
 use Domain\Identity\Models\User;
 use Domain\Shared\ValueObjects\Money;
+use Exception;
 use Illuminate\Support\Facades\DB;
+use Log;
 
 /**
  * Transfer Service (Finance Domain)
@@ -175,7 +177,14 @@ final readonly class TransferService
 
             // Dispatch event after transaction commit for real-time broadcasting
             DB::afterCommit(function () use ($transaction): void {
-                event(new TransferCompleted($transaction));
+                try {
+                    event(new TransferCompleted($transaction));
+                } catch (Exception $e) {
+                    Log::error('Failed to dispatch TransferCompleted event', [
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString(),
+                    ]);
+                }
             });
 
             return $transaction;

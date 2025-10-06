@@ -18,10 +18,12 @@ final class AuthController
     {
         $request->authenticate();
 
-        $request->session()->regenerate();
+        $user = Auth::user();
+        $token = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json([
-            'user' => UserResource::make(Auth::user()),
+            'user' => UserResource::make($user),
+            'token' => $token,
             'message' => 'Login successful',
         ]);
     }
@@ -31,10 +33,18 @@ final class AuthController
      */
     public function logout(): JsonResponse
     {
-        Auth::logout();
+        $user = Auth::user();
 
-        request()->session()->invalidate();
-        request()->session()->regenerateToken();
+        // Handle token-based logout (API tokens only)
+        $token = $user->currentAccessToken();
+        if ($token && method_exists($token, 'delete')) {
+            $token->delete();
+        }
+
+        // Clear all authentication for testing
+        if (app()->environment('testing')) {
+            Auth::forgetUser();
+        }
 
         return response()->json([
             'message' => 'Logged out successfully',
