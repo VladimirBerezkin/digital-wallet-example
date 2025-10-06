@@ -15,7 +15,7 @@ describe('Authentication API', function (): void {
             'password' => Hash::make('password123'),
         ]);
 
-        $response = $this->withSession([])->postJson('/api/auth/login', [
+        $response = $this->postJson('/api/auth/login', [
             'email' => 'john@example.com',
             'password' => 'password123',
         ]);
@@ -23,10 +23,13 @@ describe('Authentication API', function (): void {
         $response->assertOk()
             ->assertJsonStructure([
                 'user' => ['id', 'name', 'email', 'balance'],
+                'token',
                 'message',
             ]);
 
-        $this->assertAuthenticatedAs($user);
+        // Verify token is returned
+        $token = $response->json('token');
+        expect($token)->not->toBeNull();
     });
 
     it('fails login with invalid credentials', function (): void {
@@ -80,7 +83,7 @@ describe('Authentication API', function (): void {
     });
 
     it('validates login data', function (): void {
-        $response = $this->withSession([])->postJson('/api/auth/login', [
+        $response = $this->postJson('/api/auth/login', [
             'email' => 'invalid-email',
             'password' => '',
         ]);

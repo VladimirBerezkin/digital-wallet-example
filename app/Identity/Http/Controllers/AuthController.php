@@ -35,16 +35,9 @@ final class AuthController
     {
         $user = Auth::user();
 
-        // Handle token-based logout (API tokens only)
-        $token = $user->currentAccessToken();
-        if ($token && method_exists($token, 'delete')) {
-            $token->delete();
-        }
-
-        // Clear all authentication for testing
-        if (app()->environment('testing')) {
-            Auth::forgetUser();
-        }
+        // Always delete all tokens for this user to ensure proper logout
+        // This handles both normal operation and test environments
+        $user->tokens()->delete();
 
         return response()->json([
             'message' => 'Logged out successfully',

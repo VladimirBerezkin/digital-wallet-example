@@ -67,7 +67,7 @@ final readonly class TransferService
 
             // Calculate amounts using Money value object
             $transferAmount = new Money($amount);
-            $commission = $transferAmount->multiply(self::COMMISSION_RATE);
+            $commission = $transferAmount->multiply(self::COMMISSION_RATE)->roundToCents();
             $totalDebit = $transferAmount->add($commission);
 
             // Check sufficient balance

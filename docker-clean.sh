@@ -1,27 +1,24 @@
 #!/bin/bash
 
-# Digital Wallet - MySQL Docker Clean Script
+# Digital Wallet Docker Clean Script
+echo "Cleaning Digital Wallet Docker Environment..."
 
-echo "🧹 Cleaning Digital Wallet MySQL Docker environment..."
+# Stop and remove containers
+echo "Stopping and removing containers..."
+docker-compose down -v
 
-# Stop and remove all containers
-echo "🛑 Stopping containers..."
-docker-compose down
+# Remove images
+echo "Removing images..."
+docker-compose down --rmi all
 
-# Remove all containers, networks, and volumes
-echo "🗑️  Removing containers, networks, and volumes..."
-docker-compose down -v --remove-orphans
-
-# Remove any dangling images
-echo "🖼️  Removing unused images..."
-docker image prune -f
-
-# Remove any dangling volumes
-echo "💾 Removing unused volumes..."
+# Remove volumes
+echo "Removing volumes..."
 docker volume prune -f
 
+# Remove unused networks
+echo "Removing unused networks..."
+docker network prune -f
+
+echo "Cleanup completed!"
 echo ""
-echo "✅ Cleanup complete!"
-echo ""
-echo "🔄 To start fresh, run: ./docker-start.sh"
-echo "⚠️  All data has been removed. You'll need to run migrations again."
+echo "To start fresh: ./docker-start.sh"

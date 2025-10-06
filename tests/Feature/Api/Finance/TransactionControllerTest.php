@@ -11,12 +11,15 @@ uses(RefreshDatabase::class);
 describe('Transaction API', function (): void {
     it('returns transaction history for authenticated user', function (): void {
         $user = User::factory()->create(['balance' => '1000.00']);
+        $token = $user->createToken('test-token')->plainTextToken;
 
         // Create some transactions
         $receiver = User::factory()->create();
         app(TransferService::class)->transfer($user, $receiver->id, '100.00');
 
-        $response = $this->actingAs($user)->getJson('/api/transactions');
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$token,
+        ])->getJson('/api/transactions');
 
         $response->assertOk()
             ->assertJsonStructure([
@@ -30,8 +33,11 @@ describe('Transaction API', function (): void {
     it('creates a new transfer successfully', function (): void {
         $sender = User::factory()->create(['balance' => '1000.00']);
         $receiver = User::factory()->create(['balance' => '0']);
+        $token = $sender->createToken('test-token')->plainTextToken;
 
-        $response = $this->actingAs($sender)->postJson('/api/transactions', [
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$token,
+        ])->postJson('/api/transactions', [
             'receiver_id' => $receiver->id,
             'amount' => '100.00',
             'description' => 'Test payment',
@@ -49,8 +55,11 @@ describe('Transaction API', function (): void {
 
     it('validates transfer request', function (): void {
         $user = User::factory()->create(['balance' => '1000.00']);
+        $token = $user->createToken('test-token')->plainTextToken;
 
-        $response = $this->actingAs($user)->postJson('/api/transactions', [
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$token,
+        ])->postJson('/api/transactions', [
             'receiver_id' => 99999, // Non-existent
             'amount' => 'invalid',
         ]);
@@ -62,8 +71,11 @@ describe('Transaction API', function (): void {
     it('prevents transferring with insufficient balance', function (): void {
         $sender = User::factory()->create(['balance' => '50.00']);
         $receiver = User::factory()->create();
+        $token = $sender->createToken('test-token')->plainTextToken;
 
-        $response = $this->actingAs($sender)->postJson('/api/transactions', [
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$token,
+        ])->postJson('/api/transactions', [
             'receiver_id' => $receiver->id,
             'amount' => '100.00',
         ]);
@@ -74,8 +86,11 @@ describe('Transaction API', function (): void {
 
     it('prevents transferring to self', function (): void {
         $user = User::factory()->create(['balance' => '1000.00']);
+        $token = $user->createToken('test-token')->plainTextToken;
 
-        $response = $this->actingAs($user)->postJson('/api/transactions', [
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$token,
+        ])->postJson('/api/transactions', [
             'receiver_id' => $user->id,
             'amount' => '100.00',
         ]);
@@ -94,6 +109,7 @@ describe('Transaction API', function (): void {
         $user1 = User::factory()->create(['balance' => '1000.00']);
         $user2 = User::factory()->create(['balance' => '1000.00']);
         $receiver = User::factory()->create(['balance' => '0']);
+        $token = $user1->createToken('test-token')->plainTextToken;
 
         // User1 sends money
         app(TransferService::class)->transfer($user1, $receiver->id, '100.00');
@@ -102,7 +118,9 @@ describe('Transaction API', function (): void {
         app(TransferService::class)->transfer($user2, $receiver->id, '50.00');
 
         // User1 should only see their transaction
-        $response = $this->actingAs($user1)->getJson('/api/transactions');
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$token,
+        ])->getJson('/api/transactions');
 
         $response->assertOk();
         $transactions = $response->json('transactions');

@@ -1,54 +1,49 @@
 #!/bin/bash
 
-# Digital Wallet - MySQL Docker Setup Script
-
-echo "🐳 Starting Digital Wallet with MySQL Docker container..."
+# Digital Wallet Docker Setup Script
+echo "Starting Digital Wallet Docker Environment..."
 
 # Check if Docker is running
 if ! docker info > /dev/null 2>&1; then
-    echo "❌ Docker is not running. Please start Docker first."
+    echo "Docker is not running. Please start Docker Desktop and try again."
     exit 1
 fi
 
-# Start MySQL service
-echo "🏗️  Starting MySQL service..."
-docker-compose up -d
+# Check if .env file exists
+if [ ! -f .env ]; then
+    echo "Error: .env file not found!"
+    echo ""
+    echo "Please create a .env file by copying from the example:"
+    echo "   cp .env.docker.example .env"
+    echo ""
+    echo "Then add your Pusher credentials and other required settings."
+    echo "The .env file will be copied into the Docker container."
+    exit 1
+fi
+
+echo ".env file found - will be copied into Docker container"
+
+# Build and start containers
+echo "Building and starting containers..."
+docker-compose up -d --build
 
 # Wait for MySQL to be ready
-echo "⏳ Waiting for MySQL to be ready..."
-sleep 15
-
-# Check if MySQL is ready
-echo "🔍 Checking MySQL connection..."
-until docker exec digital-wallet-mysql mysqladmin ping -h"localhost" --silent; do
-    echo "⏳ MySQL is not ready yet, waiting..."
-    sleep 3
+echo "Waiting for MySQL to be ready..."
+until docker-compose exec mysql mysqladmin ping -h localhost --silent; do
+    echo "Waiting for MySQL..."
+    sleep 2
 done
 
-php artisan key:generate
-php artisan migrate
-php artisan db:seed
-
-echo "✅ MySQL is ready!"
-
 echo ""
-echo "🎉 Setup complete!"
+echo "Digital Wallet is now running!"
 echo ""
-echo "📊 Database Information:"
-echo "   Host: 127.0.0.1 (localhost)"
-echo "   Port: 3306"
-echo "   Database: digital_wallet"
-echo "   Username: laravel"
-echo "   Password: laravel"
+echo "Access Points:"
+echo "   • Application: http://localhost:8080"
+echo "   • MySQL: localhost:3306"
 echo ""
-echo "🛠️  Useful Commands:"
-echo "   Start Laravel server: composer dev"
-echo "   View MySQL logs: docker-compose logs -f mysql"
-echo "   Stop MySQL: docker-compose down"
-echo "   Restart MySQL: docker-compose restart"
-echo "   Access MySQL: docker-compose exec mysql mysql -u laravel -p digital_wallet"
-echo "   Run artisan commands: php artisan [command]"
+echo "Useful Commands:"
+echo "   • View logs: docker-compose logs -f"
+echo "   • Stop: ./docker-stop.sh"
+echo "   • Restart: ./docker-restart.sh"
+echo "   • Clean: ./docker-clean.sh"
 echo ""
-echo "🚀 To start your application, run: composer dev"
-
-composer dev

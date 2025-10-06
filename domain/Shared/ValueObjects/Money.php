@@ -129,4 +129,16 @@ final readonly class Money
     {
         return '$'.number_format((float) $this->amount, 2);
     }
+
+    /**
+     * Round the money to 2 decimal places using standard rounding rules.
+     * This ensures consistent display formatting across the application.
+     */
+    public function roundToCents(): self
+    {
+        // Round to 2 decimal places using standard rounding (round half up)
+        $rounded = round((float) $this->amount, 2);
+
+        return new self(number_format($rounded, 2, '.', ''));
+    }
 }

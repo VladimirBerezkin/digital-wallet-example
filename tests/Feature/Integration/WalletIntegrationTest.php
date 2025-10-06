@@ -29,9 +29,12 @@ describe('Wallet Integration Tests', function () {
         ]);
 
         $loginResponse->assertOk();
+        $token = $loginResponse->json('token');
 
         // Get initial transactions
-        $transactionsResponse = $this->actingAs($sender)->getJson('/api/transactions');
+        $transactionsResponse = $this->withHeaders([
+            'Authorization' => 'Bearer '.$token,
+        ])->getJson('/api/transactions');
 
         $transactionsResponse->assertOk()
             ->assertJson([
@@ -40,7 +43,9 @@ describe('Wallet Integration Tests', function () {
             ]);
 
         // Perform transfer
-        $transferResponse = $this->actingAs($sender)->postJson('/api/transactions', [
+        $transferResponse = $this->withHeaders([
+            'Authorization' => 'Bearer '.$token,
+        ])->postJson('/api/transactions', [
             'receiver_id' => $receiver->id,
             'amount' => '100.00',
             'description' => 'Test payment',
@@ -82,13 +87,16 @@ describe('Wallet Integration Tests', function () {
         expect(TransactionEvent::where('transaction_id', $transaction->id)->count())->toBe(5);
 
         // Get updated transactions
-        $updatedTransactionsResponse = $this->actingAs($sender)->getJson('/api/transactions');
+        $updatedTransactionsResponse = $this->withHeaders([
+            'Authorization' => 'Bearer '.$token,
+        ])->getJson('/api/transactions');
 
         $updatedTransactionsResponse->assertOk()
-            ->assertJson([
-                'balance' => '898.5000',
-            ])
             ->assertJsonCount(1, 'transactions');
+
+        // Verify the balance in the response matches expected
+        $responseData = $updatedTransactionsResponse->json();
+        expect($responseData['balance'])->toBe('898.5000');
     });
 
     it('handles multiple transfers correctly', function () {
@@ -96,14 +104,20 @@ describe('Wallet Integration Tests', function () {
         $receiver1 = User::factory()->create(['balance' => '0']);
         $receiver2 = User::factory()->create(['balance' => '0']);
 
+        $token = $sender->createToken('test-token')->plainTextToken;
+
         // First transfer
-        $this->actingAs($sender)->postJson('/api/transactions', [
+        $this->withHeaders([
+            'Authorization' => 'Bearer '.$token,
+        ])->postJson('/api/transactions', [
             'receiver_id' => $receiver1->id,
             'amount' => '100.00',
         ])->assertCreated();
 
         // Second transfer
-        $this->actingAs($sender)->postJson('/api/transactions', [
+        $this->withHeaders([
+            'Authorization' => 'Bearer '.$token,
+        ])->postJson('/api/transactions', [
             'receiver_id' => $receiver2->id,
             'amount' => '200.00',
         ])->assertCreated();
@@ -125,7 +139,11 @@ describe('Wallet Integration Tests', function () {
         $sender = User::factory()->create(['balance' => '50.00']);
         $receiver = User::factory()->create(['balance' => '0']);
 
-        $response = $this->actingAs($sender)->postJson('/api/transactions', [
+        $token = $sender->createToken('test-token')->plainTextToken;
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$token,
+        ])->postJson('/api/transactions', [
             'receiver_id' => $receiver->id,
             'amount' => '100.00',
         ]);
@@ -147,7 +165,11 @@ describe('Wallet Integration Tests', function () {
     it('prevents self-transfer', function () {
         $user = User::factory()->create(['balance' => '1000.00']);
 
-        $response = $this->actingAs($user)->postJson('/api/transactions', [
+        $token = $user->createToken('test-token')->plainTextToken;
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$token,
+        ])->postJson('/api/transactions', [
             'receiver_id' => $user->id,
             'amount' => '100.00',
         ]);
@@ -166,7 +188,11 @@ describe('Wallet Integration Tests', function () {
     it('validates receiver exists', function () {
         $sender = User::factory()->create(['balance' => '1000.00']);
 
-        $response = $this->actingAs($sender)->postJson('/api/transactions', [
+        $token = $sender->createToken('test-token')->plainTextToken;
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$token,
+        ])->postJson('/api/transactions', [
             'receiver_id' => 99999,
             'amount' => '100.00',
         ]);
@@ -192,13 +218,19 @@ describe('Wallet Integration Tests', function () {
         $receiver1 = User::factory()->create(['balance' => '0']);
         $receiver2 = User::factory()->create(['balance' => '0']);
 
+        $token = $sender->createToken('test-token')->plainTextToken;
+
         // Simulate concurrent transfers
-        $this->actingAs($sender)->postJson('/api/transactions', [
+        $this->withHeaders([
+            'Authorization' => 'Bearer '.$token,
+        ])->postJson('/api/transactions', [
             'receiver_id' => $receiver1->id,
             'amount' => '100.00',
         ])->assertCreated();
 
-        $this->actingAs($sender)->postJson('/api/transactions', [
+        $this->withHeaders([
+            'Authorization' => 'Bearer '.$token,
+        ])->postJson('/api/transactions', [
             'receiver_id' => $receiver2->id,
             'amount' => '150.00',
         ])->assertCreated();
@@ -223,7 +255,11 @@ describe('Wallet Integration Tests', function () {
         $sender = User::factory()->create(['balance' => '1000.00']);
         $receiver = User::factory()->create(['balance' => '0']);
 
-        $this->actingAs($sender)->postJson('/api/transactions', [
+        $token = $sender->createToken('test-token')->plainTextToken;
+
+        $this->withHeaders([
+            'Authorization' => 'Bearer '.$token,
+        ])->postJson('/api/transactions', [
             'receiver_id' => $receiver->id,
             'amount' => '100.00',
             'description' => 'Audit test',

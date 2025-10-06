@@ -22,6 +22,9 @@ final readonly class TransactionController
     {
         $user = $request->user();
 
+        // Refresh user to get latest balance from database
+        $user->refresh();
+
         $transactions = $this->queryService->getTransactionsForUser($user);
 
         return response()->json([
