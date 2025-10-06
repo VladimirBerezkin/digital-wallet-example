@@ -25,7 +25,6 @@ until docker exec digital-wallet-mysql mysqladmin ping -h"localhost" --silent; d
     sleep 3
 done
 
-cp .env.docker.example .env
 php artisan key:generate
 php artisan migrate
 php artisan db:seed
