@@ -16,7 +16,11 @@ describe('Transfer Broadcasting', function (): void {
         $sender = User::factory()->create(['balance' => '1000.00']);
         $receiver = User::factory()->create(['balance' => '0']);
 
-        $this->actingAs($sender)->postJson('/api/transactions', [
+        $token = $sender->createToken('test-token')->plainTextToken;
+
+        $this->withHeaders([
+            'Authorization' => 'Bearer '.$token,
+        ])->postJson('/api/transactions', [
             'receiver_id' => $receiver->id,
             'amount' => '100.00',
         ]);
@@ -28,7 +32,11 @@ describe('Transfer Broadcasting', function (): void {
         $sender = User::factory()->create(['balance' => '1000.00']);
         $receiver = User::factory()->create(['balance' => '0']);
 
-        $response = $this->actingAs($sender)->postJson('/api/transactions', [
+        $token = $sender->createToken('test-token')->plainTextToken;
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$token,
+        ])->postJson('/api/transactions', [
             'receiver_id' => $receiver->id,
             'amount' => '100.00',
         ]);
@@ -47,7 +55,11 @@ describe('Transfer Broadcasting', function (): void {
         $sender = User::factory()->create(['balance' => '1000.00']);
         $receiver = User::factory()->create(['balance' => '0']);
 
-        $response = $this->actingAs($sender)->postJson('/api/transactions', [
+        $token = $sender->createToken('test-token')->plainTextToken;
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$token,
+        ])->postJson('/api/transactions', [
             'receiver_id' => $receiver->id,
             'amount' => '100.00',
             'description' => 'Test payment',
