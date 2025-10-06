@@ -27,6 +27,8 @@ composer install
 npm install
 npm run build
 php artisan migrate
+php artisan key:generate
+php artisan db:seed
 composer dev
 ```
 
@@ -45,6 +47,8 @@ npm install
 npm run build
 sh docker-start.sh
 php artisan migrate
+php artisan key:generate
+php artisan db:seed
 composer dev
 ```
 2.4. After that it should be accessible via http://127.0.0.1:8000 by default.
