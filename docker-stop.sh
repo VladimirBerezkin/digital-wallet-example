@@ -1,17 +1,12 @@
 #!/bin/bash
 
-# Digital Wallet - MySQL Docker Stop Script
+# Digital Wallet Docker Stop Script
+echo "Stopping Digital Wallet Docker Environment..."
 
-echo "🛑 Stopping Digital Wallet MySQL container..."
-
-# Stop and remove all containers
+# Stop all containers
 docker-compose down
 
-echo "✅ MySQL container stopped and removed."
+echo "All containers stopped."
 echo ""
-echo "💾 Your data is preserved in Docker volumes:"
-echo "   - mysql_data (MySQL database)"
-echo "   - Application files remain in your project directory"
-echo ""
-echo "🔄 To start again, run: ./docker-start.sh"
-echo "🗑️  To remove all data and start fresh, run: ./docker-clean.sh"
+echo "To start again: ./docker-start.sh"
+echo "To clean everything: ./docker-clean.sh"
