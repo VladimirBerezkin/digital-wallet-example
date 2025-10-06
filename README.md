@@ -2,6 +2,7 @@
 Tech stack:
 > PHP 8.4+, Laravel 12, VueJS 3.5, Tailwind CSS 4.1, Sqlite/Mysql 8, Pusher
 
+![UI](ui.png?raw=true "UI")
 
 ### Important notes
 - This implementation is done according to [task.md](task.md)
