@@ -46,19 +46,29 @@ describe('Authentication API', function (): void {
 
     it('logs out authenticated user', function (): void {
         $user = User::factory()->create();
+        $token = $user->createToken('test-token')->plainTextToken;
 
-        $response = $this->actingAs($user)->withSession([])->postJson('/api/auth/logout');
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$token,
+        ])->postJson('/api/auth/logout');
 
         $response->assertOk()
             ->assertJson(['message' => 'Logged out successfully']);
 
-        $this->assertGuest();
+        // Check that the token is deleted
+        $this->assertDatabaseMissing('personal_access_tokens', [
+            'tokenable_id' => $user->id,
+            'tokenable_type' => get_class($user),
+        ]);
     });
 
     it('returns current authenticated user', function (): void {
         $user = User::factory()->create(['balance' => '1000.00']);
+        $token = $user->createToken('test-token')->plainTextToken;
 
-        $response = $this->actingAs($user)->getJson('/api/auth/user');
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$token,
+        ])->getJson('/api/auth/user');
 
         $response->assertOk()
             ->assertJson([
