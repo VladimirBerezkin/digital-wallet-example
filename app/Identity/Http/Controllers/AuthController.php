@@ -35,21 +35,10 @@ final class AuthController
     {
         $user = Auth::user();
 
-        // Handle token-based logout (API tokens)
+        // Handle token-based logout (API tokens only)
         $token = $user->currentAccessToken();
         if ($token && method_exists($token, 'delete')) {
             $token->delete();
-        }
-
-        // Handle session-based logout
-        if (Auth::guard('web')->check()) {
-            Auth::guard('web')->logout();
-        }
-
-        // Invalidate session completely
-        if (request()->hasSession()) {
-            request()->session()->invalidate();
-            request()->session()->regenerateToken();
         }
 
         // Clear all authentication for testing

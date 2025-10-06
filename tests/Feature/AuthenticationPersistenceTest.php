@@ -9,28 +9,25 @@ use Illuminate\Support\Facades\Hash;
 uses(RefreshDatabase::class);
 
 describe('Authentication Persistence', function (): void {
-    it('maintains session across multiple requests', function (): void {
+    it('maintains token across multiple requests', function (): void {
         $user = User::factory()->create([
             'email' => 'alice@example.com',
             'password' => Hash::make('password'),
         ]);
 
         // Login
-        $response = $this->withSession([])->postJson('/api/auth/login', [
+        $response = $this->postJson('/api/auth/login', [
             'email' => 'alice@example.com',
             'password' => 'password',
         ]);
 
         $response->assertOk();
-        $this->assertAuthenticatedAs($user);
+        $token = $response->json('token');
+        expect($token)->not->toBeNull();
 
-        // Get the session cookie
-        $sessionCookie = $response->headers->getCookies()[0] ?? null;
-        expect($sessionCookie)->not->toBeNull();
-
-        // Make another request with the same session
-        $response = $this->withCookies([
-            $sessionCookie->getName() => $sessionCookie->getValue(),
+        // Make another request with the same token
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$token,
         ])->getJson('/api/auth/user');
 
         $response->assertOk()
@@ -39,22 +36,28 @@ describe('Authentication Persistence', function (): void {
                 'name' => $user->name,
                 'email' => $user->email,
             ]);
-
-        $this->assertAuthenticatedAs($user);
     });
 
-    it('clears session on logout', function (): void {
+    it('clears token on logout', function (): void {
         $user = User::factory()->create();
+        $token = $user->createToken('test-token')->plainTextToken;
 
-        // Login
-        $response = $this->actingAs($user)->withSession([])->postJson('/api/auth/logout');
+        // Logout
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$token,
+        ])->postJson('/api/auth/logout');
         $response->assertOk();
 
-        // Should not be authenticated after logout
-        $this->assertGuest();
+        // Token should be deleted
+        $this->assertDatabaseMissing('personal_access_tokens', [
+            'tokenable_id' => $user->id,
+            'tokenable_type' => get_class($user),
+        ]);
 
         // Attempting to get user should fail
-        $response = $this->getJson('/api/auth/user');
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$token,
+        ])->getJson('/api/auth/user');
         $response->assertUnauthorized();
     });
 });

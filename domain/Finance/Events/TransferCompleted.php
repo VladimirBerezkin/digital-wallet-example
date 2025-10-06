@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Domain\Finance\Events;
 
 use Domain\Finance\Models\Transaction;
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
@@ -27,14 +27,16 @@ final class TransferCompleted implements ShouldBroadcast
     /**
      * Get the channels the event should broadcast on.
      *
-     * @return array<int, Channel>
+     * @return array<int, PrivateChannel>
      */
     public function broadcastOn(): array
     {
-        return [
-            new Channel('user.'.$this->transaction->sender_id),
-            new Channel('user.'.$this->transaction->receiver_id),
+        $channels = [
+            new PrivateChannel('user.'.$this->transaction->sender_id),
+            new PrivateChannel('user.'.$this->transaction->receiver_id),
         ];
+
+        return $channels;
     }
 
     /**
@@ -52,5 +54,13 @@ final class TransferCompleted implements ShouldBroadcast
             'sender_id' => $this->transaction->sender_id,
             'receiver_id' => $this->transaction->receiver_id,
         ];
+    }
+
+    /**
+     * The event's broadcast name.
+     */
+    public function broadcastAs(): string
+    {
+        return 'TransferCompleted';
     }
 }

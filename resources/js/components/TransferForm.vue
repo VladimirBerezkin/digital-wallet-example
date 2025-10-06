@@ -4,7 +4,6 @@ import Card from "primevue/card";
 import InputNumber from "primevue/inputnumber";
 import Textarea from "primevue/textarea";
 import Button from "primevue/button";
-import Message from "primevue/message";
 
 const props = defineProps({
     receiverId: {

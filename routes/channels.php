@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Domain\Identity\Models\User;
 use Illuminate\Support\Facades\Broadcast;
 
 /*
@@ -15,6 +16,6 @@ use Illuminate\Support\Facades\Broadcast;
 |
 */
 
-Broadcast::channel('user.{id}', function ($user, $id): bool {
-    return (int) $user->id === (int) $id;
+Broadcast::channel('user.{id}', function (User $user, $id): bool {
+    return $user->id === (int) $id;
 });
