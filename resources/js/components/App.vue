@@ -16,8 +16,11 @@ onMounted(async () => {
             // If validation failed, user will be cleared by fetchUser
         }
     } else {
-        // If no user in localStorage, try to get user from session
-        await fetchUser();
+        // Only try to get user from session if we have a token
+        const token = localStorage.getItem('token');
+        if (token) {
+            await fetchUser();
+        }
     }
     isLoading.value = false;
 });

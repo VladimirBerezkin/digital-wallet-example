@@ -96,8 +96,14 @@ describe('Authentication Persistence', function (): void {
         $page->script('localStorage.clear();');
         $page->script('sessionStorage.clear();');
 
+        // Also clear any Vue app state
+        $page->script('if (window.app && window.app.$data) { window.app.$data.user = null; }');
+
         // Refresh the page to ensure clean state
         $page->refresh();
+
+        // Should show login form initially
+        $page->assertSee('Sign in to manage your wallet');
 
         // Login first
         $page->click('Alice Johnson');
