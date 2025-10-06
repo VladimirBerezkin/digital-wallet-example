@@ -1,18 +1,32 @@
 #!/bin/bash
 
-# Set proper permissions for Laravel
-chown -R www-data:www-data /var/www/html/storage
-chown -R www-data:www-data /var/www/html/bootstrap/cache
-chmod -R 755 /var/www/html/storage
-chmod -R 755 /var/www/html/bootstrap/cache
+# Function to fix permissions (container-only)
+fix_permissions() {
+    echo "Fixing permissions inside Docker container..."
+    
+    # Use the dedicated container-only permission fix script
+    /usr/local/bin/fix-permissions-container.sh
+}
 
-# .env file should already exist (copied from host)
+# Fix permissions
+fix_permissions
 
-# Generate application key
-php artisan key:generate
+# Ensure .env file exists
+if [ ! -f /var/www/html/.env ]; then
+    echo "Creating .env file from example..."
+    cp /var/www/html/.env.docker.example /var/www/html/.env
+    chown www-data:www-data /var/www/html/.env
+fi
+
+# Generate application key if not set
+if ! grep -q "APP_KEY=" /var/www/html/.env || grep -q "APP_KEY=$" /var/www/html/.env; then
+    echo "Generating application key..."
+    php artisan key:generate
+fi
 
 # Install Node.js dependencies and build assets
-RUN npm ci && npm run build
+echo "Installing Node.js dependencies and building assets..."
+npm ci && npm run build
 
 # Wait for database to be ready
 echo "Waiting for database to be ready..."
@@ -23,8 +37,13 @@ done
 echo "Database is ready!"
 
 # Run migrations
+echo "Running database migrations..."
 php artisan migrate --force
 php artisan db:seed
 
+# Fix permissions again after migrations (in case new files were created)
+fix_permissions
+
 # Start supervisor
+echo "Starting supervisor..."
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
