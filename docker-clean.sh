@@ -21,4 +21,4 @@ docker network prune -f
 
 echo "Cleanup completed!"
 echo ""
-echo "To start fresh: ./docker-start.sh"
+echo "To start fresh: ./demo.sh"
