@@ -11,7 +11,7 @@ Tech stack:
 - **NO** enterprise features were implemented, such as: CQRS read models, multi-currency, partitioning, etc.
 
 ## Running this project
-There are two possible ways to run this project:
+There are three possible ways to run this project:
 1. Machine with php, composer and npm installed, SQLite as DB
 2. Machine with docker, runs everything in docker
 3. Machine with php, composer and docker (starts via Laravel Sail)
