@@ -44,7 +44,7 @@ cp .env.example.docker .env
 2.2. After that you need to add Pusher credentials to .env file, can be obtained at pusher.com.
 2.3. Run scripts
 ```bash
-sh docker-start.sh
+sh demo.sh
 ```
 2.4. After that it should be accessible via http://127.0.0.1:8000 by default.
 2.5. Docker can be stopped by running

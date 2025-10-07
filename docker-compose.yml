@@ -4,13 +4,15 @@ services:
   app:
     build:
       context: .
-      dockerfile: Full.Dockerfile
+      dockerfile: Dockerfile
     container_name: digital-wallet-app
     restart: unless-stopped
     working_dir: /var/www/html
+    # Use default container user
     volumes:
-      - ./:/var/www/html
-      - ./docker/nginx/default.conf:/etc/nginx/sites-available/default
+      # Only mount specific directories that need to be writable
+      - ./storage:/var/www/html/storage
+      - ./bootstrap/cache:/var/www/html/bootstrap/cache
     ports:
       - "8080:80"
     depends_on:
@@ -23,10 +25,9 @@ services:
       - DB_PORT=3306
       - DB_DATABASE=digital_wallet
       - DB_USERNAME=laravel
-      - DB_PASSWORD=laravel
-      - CACHE_DRIVER=database
-      - SESSION_DRIVER=database
-      - QUEUE_CONNECTION=database
+      - DB_PASSWORD=password
+      - WWWUSER=${WWWUSER:-1000}
+      - WWWGROUP=${WWWGROUP:-1000}
     networks:
       - digital-wallet-network
 
@@ -38,12 +39,11 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: digital_wallet
       MYSQL_USER: laravel
-      MYSQL_PASSWORD: laravel
+      MYSQL_PASSWORD: password
     ports:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./docker/mysql/init:/docker-entrypoint-initdb.d
     command: --default-authentication-plugin=mysql_native_password
     networks:
       - digital-wallet-network
