@@ -3,7 +3,7 @@
 # Function to fix permissions (container-only)
 fix_permissions() {
     echo "Fixing permissions inside Docker container..."
-    
+
     # Use the dedicated container-only permission fix script
     /usr/local/bin/fix-permissions-container.sh
 }
@@ -13,9 +13,8 @@ fix_permissions
 
 # Ensure .env file exists
 if [ ! -f /var/www/html/.env ]; then
-    echo "Creating .env file from example..."
-    cp /var/www/html/.env.docker.example /var/www/html/.env
-    chown www-data:www-data /var/www/html/.env
+    echo ".env file does not exist, stopping installation"
+    exit 1
 fi
 
 # Generate application key if not set
